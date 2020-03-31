@@ -68,9 +68,9 @@ class MessageSchema(ma.Schema):
                 category_name = category
             category_dict = dict(name=category_name)
         else:
-            category_dict = {}
-       data['category'] = category_dict
-       return data
+             category_dict = {}
+        data['category'] = category_dict
+        return data
        
         
 
