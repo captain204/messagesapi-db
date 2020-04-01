@@ -1,3 +1,4 @@
+
 from flask import Blueprint, request, jsonify, make_response
 from flask_restful import Api, Resource
 from models import db, Category, CategorySchema, Message, MessageSchema
@@ -7,7 +8,7 @@ import status
 
 api_bp = Blueprint('api', __name__)
 category_schema = CategorySchema()
-category_schema = CategorySchema()
+message_schema = MessageSchema()
 api = Api(api_bp)
 
 
@@ -39,28 +40,28 @@ class MessageResource(Resource):
             message.update()
             return self.get(id)
         except SQLAlchemyError as e:
-            db.session.rollback()
-            resp = jsonify({"error": str(e)})
-            return resp, status.HTTP_400_BAD_REQUEST
-
-
-    def delete(self, id):  
+                db.session.rollback()
+                resp = jsonify({"error": str(e)})
+                return resp, status.HTTP_400_BAD_REQUEST
+         
+    def delete(self, id):
         message = Message.query.get_or_404(id)
         try:
             delete = message.delete(message)
             response = make_response()
             return response, status.HTTP_204_NO_CONTENT
         except SQLAlchemyError as e:
-            db.session.rollback()
-            resp = jsonify({"error": str(e)})
-            return resp, status.HTTP_401_UNAUTHORIZED
+                db.session.rollback()
+                resp = jsonify({"error": str(e)})
+                return resp, status.HTTP_401_UNAUTHORIZED
+
 
 class MessageListResource(Resource):
     def get(self):
         messages = Message.query.all()
         result = message_schema.dump(messages, many=True).data
         return result
-    
+
     def post(self):
         request_dict = request.get_json()
         if not request_dict:
@@ -73,20 +74,23 @@ class MessageListResource(Resource):
             category_name = request_dict['category']['name']
             category = Category.query.filter_by(name=category_name).first()
             if category is None:
+                # Create a new Category
                 category = Category(name=category_name)
                 db.session.add(category)
-                message = Message(
-                    message=request_dict['message'],
-                    duration=request_dict['duration'],
-                    category=category)
-                message.add(message)
-                query = Message.query.get(message.id)
-                result = message_schema.dump(query).data
-                return result, status.HTTP_201_CREATED
+            # Now that we are sure we have a category
+            # create a new Message
+            message = Message(
+                message=request_dict['message'],
+                duration=request_dict['duration'],
+                category=category)
+            message.add(message)
+            query = Message.query.get(message.id)
+            result = message_schema.dump(query).data
+            return result, status.HTTP_201_CREATED
         except SQLAlchemyError as e:
-                db.session.rollback()
-                resp = jsonify({"error": str(e)})
-                return resp, status.HTTP_400_BAD_REQUEST
+            db.session.rollback()
+            resp = jsonify({"error": str(e)})
+            return resp, status.HTTP_400_BAD_REQUEST
 
 
 class CategoryResource(Resource):
@@ -110,10 +114,10 @@ class CategoryResource(Resource):
             category.update()
             return self.get(id)
         except SQLAlchemyError as e:
-            db.session.rollback()
-            resp = jsonify({"error": str(e)})
-            return resp, status.HTTP_400_BAD_REQUEST
-
+                db.session.rollback()
+                resp = jsonify({"error": str(e)})
+                return resp, status.HTTP_400_BAD_REQUEST
+         
     def delete(self, id):
         category = Category.query.get_or_404(id)
         try:
@@ -121,10 +125,9 @@ class CategoryResource(Resource):
             response = make_response()
             return response, status.HTTP_204_NO_CONTENT
         except SQLAlchemyError as e:
-            db.session.rollback()
-            resp = jsonify({"error": str(e)})
-            return resp, status.HTTP_401_UNAUTHORIZED
-
+                db.session.rollback()
+                resp = jsonify({"error": str(e)})
+                return resp, status.HTTP_401_UNAUTHORIZED
 
 
 class CategoryListResource(Resource):
@@ -133,7 +136,7 @@ class CategoryListResource(Resource):
         results = category_schema.dump(categories, many=True).data
         return results
 
-    def post(self):
+    def post  (self):
         request_dict = request.get_json()
         if not request_dict:
             resp = {'message': 'No input data provided'}
@@ -144,14 +147,13 @@ class CategoryListResource(Resource):
         try:
             category = Category(request_dict['name'])
             category.add(category)
-            query = Category.query.get(category.id) 
+            query = Category.query.get(category.id)
             result = category_schema.dump(query).data
             return result, status.HTTP_201_CREATED
         except SQLAlchemyError as e:
             db.session.rollback()
             resp = jsonify({"error": str(e)})
             return resp, status.HTTP_400_BAD_REQUEST
-
 
 
 api.add_resource(CategoryListResource, '/categories/')
